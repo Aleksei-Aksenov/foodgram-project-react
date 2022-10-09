@@ -16,27 +16,19 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        blank=False,
-        null=False,
     )
     email = models.EmailField(
         verbose_name="Электронная почта",
         max_length=254,
         unique=True,
-        blank=False,
-        null=False,
     )
     first_name = models.CharField(
         verbose_name="Имя пользователя",
         max_length=150,
-        blank=False,
-        null=False,
     )
     last_name = models.CharField(
         verbose_name="Фамилия пользователя",
         max_length=150,
-        blank=False,
-        null=False,
     )
 
     class Meta:
