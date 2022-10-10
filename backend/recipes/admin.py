@@ -18,9 +18,10 @@ class RecipeAdmin(admin.ModelAdmin):
         'tags',
     )
 
-    @admin.display(description='Добавлено в Избранные')
     def added_in_favorites(self, obj):
         return obj.favorites.count()
+    
+    added_in_favorites.short_description = 'Добавлено в Избранные'
 
 
 @admin.register(Ingredient)
