@@ -1,15 +1,9 @@
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.exceptions import ValidationError
+from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
 from rest_framework import serializers
-
-from recipes.models import (
-    IngredientInRecipe,
-    Ingredient,
-    Recipe,
-    Tag,
-)
+from rest_framework.exceptions import ValidationError
 from users.models import Follow, User
 
 
@@ -34,7 +28,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -118,7 +112,7 @@ class AddIngredientInRecipeSerializer(serializers.ModelSerializer):
 
 class RecipesReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -180,7 +174,6 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
 
     def validate_ingredients(self, value):
         ingredients = value
@@ -244,5 +237,5 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
-        serializer = RecipesReadSerializer(instance,context=context)
+        serializer = RecipesReadSerializer(instance, context=context)
         return serializer.data
