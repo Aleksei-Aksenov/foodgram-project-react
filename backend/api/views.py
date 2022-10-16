@@ -114,7 +114,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         serializer = RecipesReadSerializer(
             instance=serializer.instance,
-            context={'request': self.request}
+            context={"request": self.request}
         )
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -122,7 +122,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(
             instance, data=request.data, partial=partial
@@ -131,7 +131,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         serializer = RecipesReadSerializer(
             instance=serializer.instance,
-            context={'request': self.request},
+            context={"request": self.request},
         )
         return Response(
             serializer.data, status=status.HTTP_200_OK
@@ -144,7 +144,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         """Метод для добавления/удаления из избранного."""
-        if request.method == 'POST':
+        if request.method == "POST":
             return self.add_recipe(Favourite, request.user, pk)
         else:
             return self.delete_recipe(Favourite, request.user, pk)
@@ -156,7 +156,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, pk):
         """Метод для добавления/удаления из списка покупок."""
-        if request.method == 'POST':
+        if request.method == "POST":
             return self.add_recipe(ShoppingList, request.user, pk)
         else:
             return self.delete_recipe(ShoppingList, request.user, pk)
@@ -164,7 +164,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def add_recipe(self, model, user, pk):
         """Метод для добавления рецепта."""
         if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response({'errors': 'Рецепт уже добавлен!'},
+            return Response({"errors": "Рецепт уже добавлен!"},
                             status=status.HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
@@ -177,7 +177,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'errors': 'Рецепт уже удален!'},
+        return Response({"errors": "Рецепт уже удален!"},
                         status=status.HTTP_400_BAD_REQUEST)
 
     @action(
@@ -186,6 +186,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def download_shopping_cart(self, request):
+        """Метод для скачивания рецепта."""
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_list_recipe__user=request.user).values(
             "ingredient__name",
@@ -196,7 +197,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             f'{ingredient["ingredient__measurement_unit"]}'
             for ingredient in ingredients
         ])
-        filename = 'shopping_cart.txt'
-        response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        filename = "shopping_cart.txt"
+        response = HttpResponse(shopping_cart, content_type="text/plain")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
         return response

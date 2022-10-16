@@ -98,14 +98,14 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredient.id')
-    name = serializers.CharField(source='ingredient.name')
+    id = serializers.IntegerField(source="ingredient.id")
+    name = serializers.CharField(source="ingredient.name")
     measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit')
+        source="ingredient.measurement_unit")
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'name', 'measurement_unit', 'amount',)
+        fields = ("id", "name", "measurement_unit", "amount",)
 
 
 class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
@@ -116,15 +116,15 @@ class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
             "amount",
         )
         extra_kwargs = {
-            'id': {
-                'read_only': False,
-                'error_messages': {
-                    'does_not_exist': "Такого ингредиента не существует!",
+            "id": {
+                "read_only": False,
+                "error_messages": {
+                    "does_not_exist": "Такого ингредиента не существует!",
                 }
             },
-            'amount': {
-                'error_messages': {
-                    'min_value': "Количество ингредиента не может быть меньше 1!",
+            "amount": {
+                "error_messages": {
+                    "min_value": "Количество ингредиента меньше 1!",
                 }
             }
         }
@@ -154,7 +154,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self):
-        return self.context['request'].user
+        return self.context["request"].user
 
     def get_is_favorited(self, obj):
         user = self.context.get("request").user
@@ -193,7 +193,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError({
                 "Время приготовления не может быть меньше одной минуты!"
             })
-        if value["tags"] == 0:
+        if len(value["tags"]) == 0:
             raise ValidationError({
                 "Необходимо указать тег!"
             })
@@ -201,7 +201,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError({
                 "tags": "Теги должны быть уникальными!"
             })
-        if value["ingredients"] == 0:
+        if len(value["ingredients"]) == 0:
             raise ValidationError({
                 "Нужен хотя бы один ингредиент!"
             })
@@ -209,7 +209,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         for ingredient in value["ingredients"]:
             if ingredient["amount"] < 1:
                 raise ValidationError({
-                    "ingredients": "Нужен хотя бы один ингредиент!"
+                    "ingredients": "Проверьте количество ингредиента!"
                 })
             ingredients_list.append(ingredient["id"])
         if len(ingredients_list) > len(set(ingredients_list)):
