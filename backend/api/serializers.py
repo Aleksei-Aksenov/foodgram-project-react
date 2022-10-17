@@ -97,24 +97,10 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="ingredient.id")
-    name = serializers.CharField(source="ingredient.name")
-    measurement_unit = serializers.CharField(
-        source="ingredient.measurement_unit")
-
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
         fields = ("id", "name", "measurement_unit", "amount",)
-
-
-class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IngredientInRecipe
-        fields = (
-            "id",
-            "amount",
-        )
         extra_kwargs = {
             "id": {
                 "read_only": False,
@@ -133,7 +119,7 @@ class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
 class RecipesReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientInRecipeReadSerializer(many=True)
+    ingredients = IngredientInRecipeSerializer(many=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
@@ -170,7 +156,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
 
 
 class RecipesWriteSerializer(serializers.ModelSerializer):
-    ingredients = IngredientInRecipeWriteSerializer(many=True)
+    ingredients = IngredientInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True)
     image = Base64ImageField()
@@ -188,11 +174,14 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def validate(self, value):
+    def validate_cooking_time(self, value):
         if value["cooking_time"] < 1:
             raise ValidationError({
                 "Время приготовления не может быть меньше одной минуты!"
             })
+        return value
+
+    def validate_tags(self, value):
         if len(value["tags"]) == 0:
             raise ValidationError({
                 "Необходимо указать тег!"
@@ -201,6 +190,9 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError({
                 "tags": "Теги должны быть уникальными!"
             })
+        return value
+
+    def validate_ingredients(self, value):
         if len(value["ingredients"]) == 0:
             raise ValidationError({
                 "Нужен хотя бы один ингредиент!"

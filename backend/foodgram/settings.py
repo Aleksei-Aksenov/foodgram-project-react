@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "_!t2r!p9tmpyc-76zc_^%67295gu*qtt6_9*vx_%=q@@s=otf4"
+SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,9 +45,9 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "djoser",
     "django_filters",
-    "api.apps.ApiConfig",
     "recipes.apps.RecipesConfig",
     "users.apps.UsersConfig",
+    "api.apps.ApiConfig",
 ]
 
 MIDDLEWARE = [

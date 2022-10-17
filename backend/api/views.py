@@ -24,7 +24,6 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингридиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    pagination_class = None
     filter_class = IngredientFilter
 
 
@@ -32,14 +31,12 @@ class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    pagination_class = None
 
 
 class CustomUsersViewSet(UserViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = None
 
     @action(
         methods=["GET"],
@@ -97,7 +94,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_class = RecipeFilter
     permission_classes = (IsAdminAuthorOrReadOnly,)
-    pagination_class = None
     filter_backends = (DjangoFilterBackend,)
 
     def get_serializer_class(self):
