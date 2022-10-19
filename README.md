@@ -58,7 +58,7 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 
-**Как развернуть проект на сервере:**
+
 
 ## :pencil2: Автор проекта:
 
