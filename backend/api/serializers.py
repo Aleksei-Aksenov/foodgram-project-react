@@ -182,13 +182,9 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_tags(self, value):
-        if len(value["tags"]) == 0:
-            raise ValidationError({
-                "Необходимо указать тег!"
-            })
-        if len(value["tags"]) != len(set(value["tags"])):
-            raise ValidationError({
-                "tags": "Теги должны быть уникальными!"
+        if not len(value):
+            raise ({
+                "Не указан ни один тег!"
             })
         return value
 
