@@ -25,18 +25,21 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_class = IngredientFilter
+    pagination_class = None
 
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class CustomUsersViewSet(UserViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = None
 
     @action(
         methods=["GET"],

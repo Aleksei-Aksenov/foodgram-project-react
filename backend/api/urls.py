@@ -1,8 +1,10 @@
+from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework import routers
 
 from .views import (IngredientsViewSet, RecipesViewSet, TagsViewSet,
                     CustomUsersViewSet)
+from foodgram import settings
 
 app_name = "api"
 
@@ -17,3 +19,11 @@ urlpatterns = [
     path("", include("djoser.urls")),
     path("auth/", include("djoser.urls.authtoken")),
 ]
+
+urlpatterns += static(
+    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+)
+
+urlpatterns += static(
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT
+)
