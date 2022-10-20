@@ -235,3 +235,9 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         instance = self.create_amount_ingredients(
             instance, validated_data)
         return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipesReadSerializer(instance,
+                                     context=context).data
