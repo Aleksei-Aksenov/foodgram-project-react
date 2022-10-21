@@ -100,7 +100,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
-        fields = ("id", "name", "measurement_unit", "amount",)
+        fields = ("id", "measurement_unit", "amount",)
         extra_kwargs = {
             "id": {
                 "read_only": False,
