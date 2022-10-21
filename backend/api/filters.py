@@ -1,8 +1,8 @@
-from django_filters.rest_framework import filters
+from django_filters.rest_framework import FilterSet, filters
 from recipes.models import Ingredient, Recipe, Tag
 
 
-class IngredientFilter(filters.FilterSet):
+class IngredientFilter(FilterSet):
     """Фильтр ингредиентов"""
     name = filters.CharFilter(field_name='name', lookup_expr='istartswith')
 
@@ -11,9 +11,9 @@ class IngredientFilter(filters.FilterSet):
         fields = ('name',)
 
 
-class RecipeFilter(filters.FilterSet):
+class RecipeFilter(FilterSet):
     """Фильтр рецептов"""
-    tags = filters.filters.ModelMultipleChoiceFilter(
+    tags = filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
         field_name='tags__slug',
         to_field_name='slug',
