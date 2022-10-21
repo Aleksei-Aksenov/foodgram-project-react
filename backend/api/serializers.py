@@ -310,3 +310,27 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favourite
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор продуктовой корзины"""
+    id = serializers.CharField(
+        read_only=True,
+        source='recipe.id',
+    )
+    cooking_time = serializers.CharField(
+        read_only=True,
+        source='recipe.cooking_time',
+    )
+    image = serializers.CharField(
+        read_only=True,
+        source='recipe.image',
+    )
+    name = serializers.CharField(
+        read_only=True,
+        source='recipe.name',
+    )
+
+    class Meta:
+        model = ShoppingList
+        fields = ('id', 'name', 'image', 'cooking_time')
