@@ -1,5 +1,6 @@
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
+from recipes.models import (Favourite, Ingredient, IngredientInRecipe,
+                            Recipe, ShoppingList, Tag)
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from users.models import Follow, User
@@ -106,9 +107,8 @@ class RecipesReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(many=True)
-    is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
-    image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -118,27 +118,26 @@ class RecipesReadSerializer(serializers.ModelSerializer):
             "author",
             "ingredients",
             "is_favorited",
-            "is_in_shopping_list",
+            "is_in_shopping_cart",
             "name",
             "image",
             "text",
             "cooking_time",
         )
 
-    def get_user(self):
-        return self.context["request"].user
-
     def get_is_favorited(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return user.favorites.filter(recipe=obj).exists()
+        return Favourite.objects.filter(recipe=obj,
+                                        user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return user.shopping_cart.filter(recipe=obj).exists()
+        return ShoppingList.objects.filter(recipe=obj,
+                                           user=user).exists()
 
 
 class RecipesWriteSerializer(serializers.ModelSerializer):
