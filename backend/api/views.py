@@ -8,7 +8,8 @@ from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingList, Tag)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from users.models import Follow, User
 
@@ -24,6 +25,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингридиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = IngredientFilter
     pagination_class = None
@@ -32,9 +34,10 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
+    pagination_class = None
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    pagination_class = None
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class CustomUsersViewSet(UserViewSet):
