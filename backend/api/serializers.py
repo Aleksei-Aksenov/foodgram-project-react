@@ -272,3 +272,65 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         context = {'request': request}
         return RecipesReadSerializer(instance,
                                      context=context).data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор избранных рецептов"""
+    id = serializers.CharField(
+        read_only=True, source='recipe.id',
+    )
+    cooking_time = serializers.CharField(
+        read_only=True, source='recipe.cooking_time',
+    )
+    image = serializers.CharField(
+        read_only=True, source='recipe.image',
+    )
+    name = serializers.CharField(
+        read_only=True, source='recipe.name',
+    )
+
+    def validate(self, data):
+        """Валидатор избранных рецептов"""
+        recipe = data['recipe']
+        user = data['user']
+        if user == recipe.author:
+            raise serializers.ValidationError(
+                'Вы не можете добавить свои рецепты в избранное')
+        if Favourite.objects.filter(recipe=recipe, user=user).exists():
+            raise serializers.ValidationError(
+                'Вы уже добавили рецепт в избранное')
+        return data
+
+    def create(self, validated_data):
+        """Метод создания избранного"""
+        favorite = Favourite.objects.create(**validated_data)
+        favorite.save()
+        return favorite
+
+    class Meta:
+        model = Favourite
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор продуктовой корзины"""
+    id = serializers.CharField(
+        read_only=True,
+        source='recipe.id',
+    )
+    cooking_time = serializers.CharField(
+        read_only=True,
+        source='recipe.cooking_time',
+    )
+    image = serializers.CharField(
+        read_only=True,
+        source='recipe.image',
+    )
+    name = serializers.CharField(
+        read_only=True,
+        source='recipe.name',
+    )
+
+    class Meta:
+        model = ShoppingList
+        fields = ('id', 'name', 'image', 'cooking_time')

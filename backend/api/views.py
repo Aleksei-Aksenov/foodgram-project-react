@@ -16,7 +16,7 @@ from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
-                          RecipesWriteSerializer, ShortRecipeSerializer,
+                          RecipesWriteSerializer, FavoriteSerializer,
                           TagSerializer)
 
 
@@ -107,41 +107,31 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return RecipesReadSerializer
         return RecipesWriteSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def add_recipe(self, model, user, pk):
+        """Метод для добавления"""
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response({
+                'errors': 'Рецепт уже добавлен в список'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = FavoriteSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        serializer = RecipesReadSerializer(
-            instance=serializer.instance,
-            context={"request": self.request}
-        )
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer = RecipesReadSerializer(
-            instance=serializer.instance,
-            context={"request": self.request},
-        )
-        return Response(
-            serializer.data, status=status.HTTP_200_OK
-        )
+    def delete_recipe(self, model, user, pk):
+        """Метод для удаления"""
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            'errors': 'Рецепт уже удален'
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=["POST", "DELETE"],
         detail=True,
+        methods=["POST", "DELETE"],
+        url_path="favorite",
         permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk):
@@ -152,8 +142,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return self.delete_recipe(Favourite, request.user, pk)
 
     @action(
-        methods=["POST", "DELETE"],
         detail=True,
+        methods=["POST", "DELETE"],
+        url_path="shopping_cart",
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk):
@@ -163,28 +154,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
         else:
             return self.delete_recipe(ShoppingList, request.user, pk)
 
-    def add_recipe(self, model, user, pk):
-        """Метод для добавления рецепта."""
-        if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response({"errors": "Рецепт уже добавлен!"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete_recipe(self, model, user, pk):
-        """Метод для удаления рецепта."""
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({"errors": "Рецепт уже удален!"},
-                        status=status.HTTP_400_BAD_REQUEST)
-
     @action(
-        methods=["GET"],
         detail=False,
+        methods=["GET"],
+        url_path="download_shopping_cart",
         permission_classes=(IsAuthenticated,),
     )
     def download_shopping_cart(self, request):
