@@ -215,19 +215,15 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError('Теги должны быть уникальными')
         return data
 
-    def create_amount_ingredients(self, ingredients_data):
-        ingredients = []
-        for amount_of_ingredient in ingredients_data:
-            ingredient = get_object_or_404(
-                Ingredient,
-                id=amount_of_ingredient.get('id')
+    def create_amount_ingredients(self, ingredients, recipe):
+        objs = []
+        for ingredient in ingredients:
+            obj, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=ingredient['id'],
+                amount=ingredient['amount'],
             )
-            amount_of_ingredient, _ = IngredientInRecipe.objects.get_or_create(
-                ingredient=ingredient,
-                amount=amount_of_ingredient.get('amount'),
-            )
-            ingredients.append(amount_of_ingredient)
-        return ingredients
+            objs.append(obj)
+        recipe.ingredients.set(objs)
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
