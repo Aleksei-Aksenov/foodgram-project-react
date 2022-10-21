@@ -23,12 +23,12 @@ from .serializers import (CustomUserSerializer, FollowSerializer,
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингридиента."""
+    pagination_class = None
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = IngredientFilter
-    pagination_class = None
     search_fields = ("^name",)
 
 
@@ -44,7 +44,6 @@ class CustomUsersViewSet(UserViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = None
 
     @action(
         methods=["GET"],
