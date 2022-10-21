@@ -215,32 +215,41 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError('Теги должны быть уникальными')
         return data
 
-    def create_amount_ingredients(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        for ingredient in ingredients:
-            amount_of_ingredient, _ = IngredientInRecipe.objects.get_or_create(
-                ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
-                amount=ingredient['amount'],
+    def create_amount_ingredients(self, ingredients_data):
+        ingredients = []
+        for amount_of_ingredient in ingredients_data:
+            ingredient = get_object_or_404(
+                Ingredient,
+                id=amount_of_ingredient.get('id').id
             )
-            instance.ingredients.add(amount_of_ingredient)
-        return instance
+            amount_of_ingredient, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=ingredient,
+                amount=amount_of_ingredient.get('amount'),
+            )
+            ingredients.append(amount_of_ingredient)
+        return ingredients
 
     def create(self, validated_data):
-        author = self.context.get('request').user
-        tags_data = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.save()
-        recipe.tags.set(tags_data)
-        self.create_amount_ingredients(recipe, ingredients_data)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        ingredients = self.create_amount_ingredients(ingredients)
+        recipe.ingredients.set(ingredients)
         return recipe
 
     def update(self, instance, validated_data):
-        instance.ingredients.clear()
         instance.tags.clear()
-        instance = self.create_amount_ingredients(
-            instance, validated_data)
-        return super().update(instance, validated_data)
+        tags = validated_data.pop('tags')
+        instance.tags.set(tags)
+        ingredients = validated_data.pop('ingredients')
+        instance.ingredients.clear()
+        ingredients = self.create_amount_ingredients(ingredients)
+        instance.ingredients.set(ingredients)
+        return super().update(
+            instance,
+            validated_data
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')
