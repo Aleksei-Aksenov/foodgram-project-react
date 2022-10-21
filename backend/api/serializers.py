@@ -101,19 +101,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
         fields = ("id", "amount",)
-        extra_kwargs = {
-            "id": {
-                "read_only": False,
-                "error_messages": {
-                    "does_not_exist": "Такого ингредиента не существует!",
-                }
-            },
-            "amount": {
-                "error_messages": {
-                    "min_value": "Количество ингредиента меньше 1!",
-                }
-            }
-        }
 
 
 class RecipesReadSerializer(serializers.ModelSerializer):
@@ -174,37 +161,59 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def validate_cooking_time(self, value):
-        if value["cooking_time"] < 1:
-            raise ValidationError({
-                "Время приготовления не может быть меньше одной минуты!"
-            })
-        return value
+    def validate_ingredients(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
+            raise ValidationError(
+                'Нужно выбрать минимум 1 ингредиент!')
+        for ingredient in ingredients:
+            try:
+                int(ingredient.get('amount'))
+                if int(ingredient.get('amount')) <= 0:
+                    raise ValidationError(
+                        'Количество должно быть положительным!')
+            except Exception:
+                raise ValidationError({'amount': 'Колличество должно'
+                                      'быть числом'})
+            check_id = ingredient['id']
+            check_ingredient = Ingredient.objects.filter(id=check_id)
+            if not check_ingredient.exists():
+                raise serializers.ValidationError(
+                    'Данного продукта нет в базе!')
+        return data
 
-    def validate_tags(self, value):
-        if not len(value):
-            raise ({
-                "Не указан ни один тег!"
-            })
-        return value
+    def validate_cooking_time(self, data):
+        cooking_time = self.initial_data.get('cooking_time')
+        try:
+            int(cooking_time)
+            if int(cooking_time) < 1:
+                raise serializers.ValidationError(
+                    'Время готовки не может быть'
+                    ' меньше 1!')
+            if int(cooking_time) > 720:
+                raise serializers.ValidationError(
+                    'Время готовки не может быть'
+                    ' больше 720!')
+        except Exception:
+            raise ValidationError({'cooking_time': 'Время'
+                                  ' должно быть больше 0'})
+        return data
 
-    def validate_ingredients(self, value):
-        if len(value["ingredients"]) == 0:
-            raise ValidationError({
-                "Нужен хотя бы один ингредиент!"
-            })
-        ingredients_list = []
-        for ingredient in value["ingredients"]:
-            if ingredient["amount"] < 1:
-                raise ValidationError({
-                    "ingredients": "Проверьте количество ингредиента!"
-                })
-            ingredients_list.append(ingredient["id"])
-        if len(ingredients_list) > len(set(ingredients_list)):
-            raise ValidationError({
-                "ingredients": "Ингридиенты не должны повторяться!"
-            })
-        return value
+    def validate_tags(self, data):
+        tags = self.initial_data.get('tags')
+        if not tags:
+            raise ValidationError(
+                'Рецепт не может быть без тегов'
+            )
+        for tag_id in tags:
+            if not Tag.objects.filter(id=tag_id).exists():
+                raise serializers.ValidationError(
+                    f'Тег с id = {tag_id} не существует'
+                )
+        tags_bd = set(tags)
+        if len(tags) != len(tags_bd):
+            raise ValidationError('Теги должны быть уникальными')
+        return data
 
     def create_amount_ingredients(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')
