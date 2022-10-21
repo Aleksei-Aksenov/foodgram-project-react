@@ -24,8 +24,10 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингридиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend,)
     filter_class = IngredientFilter
     pagination_class = None
+    search_fields = ("^name",)
 
 
 class TagsViewSet(viewsets.ModelViewSet):
@@ -95,6 +97,7 @@ class CustomUsersViewSet(UserViewSet):
 class RecipesViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
     queryset = Recipe.objects.all()
+    filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     permission_classes = (IsAdminAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
