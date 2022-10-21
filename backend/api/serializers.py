@@ -220,7 +220,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         for amount_of_ingredient in ingredients_data:
             ingredient = get_object_or_404(
                 Ingredient,
-                id=amount_of_ingredient.get('id').id
+                id=amount_of_ingredient.get('id')
             )
             amount_of_ingredient, _ = IngredientInRecipe.objects.get_or_create(
                 ingredient=ingredient,
