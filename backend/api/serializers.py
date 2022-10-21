@@ -8,6 +8,7 @@ from users.models import Follow, User
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор модели тегов."""
     class Meta:
         model = Tag
         fields = (
@@ -19,6 +20,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели ингридиентов."""
     class Meta:
         model = Ingredient
         fields = (
@@ -29,6 +31,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    """Сериализатор модели пользователя."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -139,6 +142,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
         return IngredientInRecipeSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
+        """Проверяет находится ли рецепт в избранном."""
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
@@ -146,6 +150,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
                                         user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        """Проверяет находится ли рецепт в продуктовой корзине."""
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
