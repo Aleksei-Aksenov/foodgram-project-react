@@ -96,7 +96,7 @@ class CustomUsersViewSet(UserViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by("-id")
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     serializer_class = RecipesReadSerializer
