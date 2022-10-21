@@ -117,7 +117,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов."""
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientInRecipeSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -135,11 +135,6 @@ class RecipesReadSerializer(serializers.ModelSerializer):
             "text",
             "cooking_time",
         )
-
-    def get_ingredients(self, obj):
-        """Получает список ингридиентов для рецепта."""
-        ingredients = IngredientInRecipe.objects.filter(recipe=obj)
-        return IngredientInRecipeSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         """Проверяет находится ли рецепт в избранном."""
