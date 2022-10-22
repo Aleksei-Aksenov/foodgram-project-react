@@ -235,7 +235,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         for ingr in ingredients:
             ingredient_name = get_object_or_404(
                 IngredientInRecipe,
-                id=ingr.get('id').id
+                id=ingr.get('id')
             )
             ingr, _ = Ingredient.objects.get_or_create(
                 ingredient_name=ingredient_name,
