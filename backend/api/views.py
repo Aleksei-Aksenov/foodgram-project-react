@@ -50,7 +50,7 @@ class CustomUsersViewSet(UserViewSet):
         detail=False,
         permission_classes=(IsAuthenticated,)
     )
-    def followers(self, request):
+    def subscriptions(self, request):
         """Метод для просмотра подписок на авторов."""
         user = self.request.user
         queryset = Follow.objects.filter(user=user)
@@ -65,7 +65,7 @@ class CustomUsersViewSet(UserViewSet):
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def follow(self, request, id):
+    def subscribe(self, request, id):
         """Метод для подписки/отписки от автора."""
         author = get_object_or_404(User, id=id)
         if request.method == "POST":
