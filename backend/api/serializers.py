@@ -245,7 +245,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return amount_ingredients
 
     def create(self, validated_data):
-        """Метод создания рецепта."""
+        """Метод создания рецепта"""
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
