@@ -230,16 +230,19 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError('Теги должны быть уникальными')
         return data
 
-    def create_amount_ingredients(self, ingredients, recipe):
-        for ingredient in ingredients:
-            current_ingredient = get_object_or_404(
-                Ingredient.objects.filter(id=ingredient['id'])[:1]
+    def create_amount_ingredients(self, ingredients):
+        amount_ingredients = []
+        for ingr in ingredients:
+            ingredient_name = get_object_or_404(
+                IngredientInRecipe,
+                id=ingr.get('id').id
             )
-            ingr, _ = IngredientInRecipe.objects.get_or_create(
-                ingredient=current_ingredient,
-                amount=ingredient["amount"],
+            ingr, _ = Ingredient.objects.get_or_create(
+                ingredient_name=ingredient_name,
+                amount=ingr.get('amount'),
             )
-            recipe.ingredients.add(ingr.id)
+            amount_ingredients.append(ingr)
+        return amount_ingredients
 
     def create(self, validated_data):
         """Метод создания рецепта."""
@@ -248,18 +251,22 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
         for tag in tags:
             recipe.tags.set(tags)
-        self.create_amount_ingredients(ingredients, recipe)
+        ingredients = self.create_amount_ingredients(ingredients)
+        recipe.ingredients.set(ingredients)
         return recipe
 
-    def update(self, recipe, validated_data):
-        if "ingredients" in validated_data:
-            ingredients = validated_data.pop("ingredients")
-            recipe.ingredients.clear()
-            self.create_ingredients(ingredients, recipe)
-        if "tags" in validated_data:
-            tags_data = validated_data.pop("tags")
-            recipe.tags.set(tags_data)
-        return super().update(recipe, validated_data)
+    def update(self, instance, validated_data):
+        instance.tags.clear()
+        tags = validated_data.pop('tags')
+        instance.tags.set(tags)
+        ingredients = validated_data.pop('ingredients')
+        instance.ingredients.clear()
+        ingredients = self.create_amount_ingredients(ingredients)
+        instance.ingredients.set(ingredients)
+        return super().update(
+            instance,
+            validated_data
+        )
 
     def to_representation(self, recipe):
         serializer = RecipesReadSerializer(recipe, context=self.context)
