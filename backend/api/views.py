@@ -4,15 +4,16 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingList, Tag)
+
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from users.models import Follow, User
 
+from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingList, Tag)
+from users.models import Follow, User
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
@@ -23,24 +24,22 @@ from .serializers import (CustomUserSerializer, FollowSerializer,
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингридиента."""
-    pagination_class = None
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = IngredientFilter
     search_fields = ("^name",)
+    pagination_class = None
 
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
-    pagination_class = None
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
-class CustomUsersViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
@@ -129,6 +128,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return Response({
             'errors': 'Рецепт уже удален'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     @action(
         detail=True,
