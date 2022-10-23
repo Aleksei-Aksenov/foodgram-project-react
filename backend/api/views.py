@@ -169,7 +169,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         user = request.user
         ingredients_list = (
             IngredientInRecipe.objects.filter(
-                amount_in_recipes__shopping_list_recipe__user=user
+                recipes__shopping_list_user__user=user
             )
             .values(
                 name=F('ingredient__name'),
