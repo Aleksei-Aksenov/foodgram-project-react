@@ -98,7 +98,7 @@ class CustomUserViewSet(UserViewSet):
 class RecipesViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
     queryset = Recipe.objects.all().order_by("-id")
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
 
