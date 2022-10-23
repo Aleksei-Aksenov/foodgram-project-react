@@ -167,7 +167,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         """Метод для получения и скачивания
         списка продуктов из продуктовой корзины"""
         ingredients_list = IngredientInRecipe.objects.filter(
-            recipes__shopping_list_recipe__user=request.user
+            recipes__shopping_list_user__user=request.user
         ).values(
             "ingredient__name",
             "ingredient__measurement_unit"
