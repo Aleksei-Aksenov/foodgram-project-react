@@ -295,14 +295,25 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор продуктовой корзины"""
-    ingredient = serializers.SerializerMethodField()
+    id = serializers.CharField(
+        read_only=True,
+        source='recipe.id',
+    )
+    cooking_time = serializers.CharField(
+        read_only=True,
+        source='recipe.cooking_time',
+    )
+    image = serializers.CharField(
+        read_only=True,
+        source='recipe.image',
+    )
+    name = serializers.CharField(
+        read_only=True,
+        source='recipe.name',
+    )
 
     class Meta:
-        model = Recipe
-        fields = ("ingredient",)
-
-    def get_ingredient(self, recipe):
-        ingredient = recipe.ingredients.all()
-        return IngredientSerializer(ingredient, many=True).data
+        model = ShoppingList
+        fields = ('id', 'name', 'image', 'cooking_time')
