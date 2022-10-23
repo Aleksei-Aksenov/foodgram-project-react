@@ -1,5 +1,6 @@
 from django.db.models import F, Sum
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -19,7 +20,6 @@ from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
                           RecipesWriteSerializer, FavouriteSerializer,
                           TagSerializer)
-from .utils import get_shopping_list
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -169,7 +169,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         user = request.user
         ingredients_list = (
             IngredientInRecipe.objects.filter(
-                recipes__shopping_list_user__user=user
+                recipes__shopping_list_recipe__user=user
             )
             .values(
                 name=F('ingredient__name'),
@@ -177,4 +177,17 @@ class RecipesViewSet(viewsets.ModelViewSet):
             )
             .annotate(amount=Sum('amount'))
         )
-        return get_shopping_list(ingredients_list)
+        shopping_list = 'Список покупок: \n'
+        for ingredient in ingredients_list:
+            shopping_list += (
+                f'{ingredient["ingredient__name"]} - '
+                f'{ingredient["ingredient_total"]} '
+                f'({ingredient["ingredient__measurement_unit"]}) \n'
+            )
+            response = HttpResponse(
+                shopping_list, content_type='text/plain; charset=utf8'
+            )
+            response[
+                'Content-Disposition'
+            ] = 'attachment; filename="shopping_list.txt"'
+        return response
