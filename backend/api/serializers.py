@@ -316,7 +316,7 @@ class FavouriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    """Сериализатор продуктовой корзины"""
+    """Сериализатор продуктовой корзины."""
     id = serializers.CharField(
         read_only=True,
         source='recipe.id',
