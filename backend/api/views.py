@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -10,17 +9,22 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated)
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
+from rest_framework.viewsets import GenericViewSet
 
 from recipes.models import (Favourite, Ingredient, Recipe,
-                            IngredientInRecipe, ShoppingList, Tag)
+                            ShoppingList, Tag)
 from users.models import Follow, User
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
                           RecipesWriteSerializer, FavouriteSerializer,
-                          TagSerializer)
+                          ShortRecipeSerializer, TagSerializer)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -145,52 +149,84 @@ class RecipesViewSet(viewsets.ModelViewSet):
         else:
             return self.delete_recipe(Favourite, request.user, pk)
 
-    @action(
-        detail=True,
-        methods=["POST", "DELETE"],
-        url_path="shopping_cart",
-        permission_classes=(IsAuthenticated,)
-    )
-    def shopping_cart(self, request, pk=None):
-        """Метод для добавления/удаления из продуктовой корзины"""
-        if request.method == 'POST':
-            return self.add_recipe(ShoppingList, request.user, pk)
-        else:
-            return self.delete_recipe(ShoppingList, request.user, pk)
 
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_path="download_shopping_cart",
-        permission_classes=(IsAuthenticated,)
-    )
+class ShoppingCartViewSet(GenericViewSet):
+    NAME = 'ingredients__ingredient__name'
+    MEASUREMENT_UNIT = 'ingredients__ingredient__measurement_unit'
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ShortRecipeSerializer
+    queryset = ShoppingList.objects.all()
+    http_method_names = ('get', 'delete',)
+
+    def generate_shopping_cart_data(self, request):
+        recipes = (
+            request.user.shopping_list_user.recipes.prefetch_related(
+                'ingredients')
+        )
+        return (
+            recipes.order_by(self.NAME)
+            .values(self.NAME, self.MEASUREMENT_UNIT)
+            .annotate(total=Sum('ingredients__amount'))
+        )
+
+    def generate_ingredients_content(self, ingredients):
+        content = ''
+        for ingredient in ingredients:
+            content += (
+                f'{ingredient[self.NAME]}'
+                f' ({ingredient[self.MEASUREMENT_UNIT]})'
+                f' — {ingredient["total"]}\r\n'
+            )
+        return content
+
+    @action(detail=False)
     def download_shopping_cart(self, request):
-        """Метод для получения и скачивания
-        списка продуктов из продуктовой корзины"""
-        user = request.user
-        if not user.shopping_list_user.exists():
-            return Response(status=HTTP_400_BAD_REQUEST)
-        ingredients_list = IngredientInRecipe.objects.filter(
-            recipes__shopping_list_recipe__user=request.user
-        ).values(
-            "ingredient__name",
-            "ingredient__measurement_unit"
-        ).annotate(amount=Sum("amount"))
-        today = datetime.today()
-        shopping_list = (
-            f'Список покупок для: {user.get_full_name()}\n\n'
-            f'Дата: {today:%Y-%m-%d}\n\n'
-        )
-        shopping_list += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
-            f' - {ingredient["amount"]}'
-            for ingredient in ingredients_list
-        ])
-        shopping_list += f'\n\nFoodgram ({today:%Y})'
-        filename = f'{user.username}_shopping_list.txt'
+        try:
+            ingredients = self.generate_shopping_cart_data(request)
+        except ShoppingList.DoesNotExist:
+            return Response(
+                {'errors': 'Список покупок не существует!'},
+                status=HTTP_400_BAD_REQUEST
+            )
+        content = self.generate_ingredients_content(ingredients)
         response = HttpResponse(
-            shopping_list, content_type='text.txt; charset=utf-8'
+            content, content_type='text/plain,charset=utf8'
         )
+        filename = "shopping_list.txt"
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
+
+    def add_to_shopping_cart(self, request, recipe, shopping_cart):
+        if shopping_cart.recipes.filter(pk__in=(recipe.pk,)).exists():
+            return Response(
+                {'errors': 'Рецепт уже добавлен!'},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        shopping_cart.recipes.add(recipe)
+        serializer = self.get_serializer(recipe)
+        return Response(
+            serializer.data,
+            status=HTTP_201_CREATED,
+        )
+
+    def remove_from_shopping_cart(self, request, recipe, shopping_cart):
+        if not shopping_cart.recipes.filter(pk__in=(recipe.pk,)).exists():
+            return Response(
+                {'errors': 'Нельзя удалить из списка покупок рецепт '
+                           ', которого там нет.'},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        shopping_cart.recipes.remove(recipe)
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    @action(methods=('get', 'delete',), detail=True)
+    def shopping_cart(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        shopping_cart = (
+            ShoppingList.objects.get_or_create(user=request.user)[0]
+        )
+        if request.method == 'GET':
+            return self.add_to_shopping_cart(request, recipe, shopping_cart)
+        return self.remove_from_shopping_cart(request, recipe, shopping_cart)
