@@ -184,10 +184,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 f'{ingredient["ingredient_total"]} '
                 f'({ingredient["ingredient__measurement_unit"]}) \n'
             )
-            response = HttpResponse(
-                shopping_list, content_type='text/plain; charset=utf8'
-            )
-            response[
-                'Content-Disposition'
-            ] = 'attachment; filename="shopping_list.txt"'
+        response = HttpResponse(
+            shopping_list, content_type='text/plain; charset=utf8'
+        )
+        filename = "shopping_list.txt"
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
