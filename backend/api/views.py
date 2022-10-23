@@ -7,8 +7,7 @@ from djoser.views import UserViewSet
 
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated)
 from rest_framework.response import Response
 
 from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
