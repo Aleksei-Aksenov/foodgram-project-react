@@ -1,5 +1,6 @@
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -19,7 +20,6 @@ from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
                           RecipesWriteSerializer, FavouriteSerializer,
                           TagSerializer)
-from .utils import get_shopping_list
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -166,10 +166,28 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         """Метод для получения и скачивания
         списка продуктов из продуктовой корзины"""
-        ingredients_list = IngredientInRecipe.objects.filter(
-            recipes__shopping_list_recipe__user=request.user
-        ).values(
-            "ingredient__name",
-            "ingredient__measurement_unit"
-        ).annotate(amount=Sum("amount"))
-        return get_shopping_list(ingredients_list)
+        ingredients = IngredientInRecipe.objects.select_related(
+            'ingredient'
+        )
+        ingredients = ingredients.filter(
+            recipe__shopping_list_recipe__user=request.user
+        )
+        ingredients = ingredients.values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        )
+        ingredients = ingredients.annotate(ingredient_total=Sum('amount'))
+        ingredients = ingredients.order_by('ingredient__name')
+        shopping_list = 'Список покупок: \n'
+        for ingredient in ingredients:
+            shopping_list += (
+                f'{ingredient["ingredient__name"]} - '
+                f'{ingredient["ingredient_total"]} '
+                f'({ingredient["ingredient__measurement_unit"]}) \n'
+            )
+            response = HttpResponse(
+                shopping_list, content_type='text/plain; charset=utf8'
+            )
+            response[
+                'Content-Disposition'
+            ] = 'attachment; filename="shopping_list.txt"'
+        return response
