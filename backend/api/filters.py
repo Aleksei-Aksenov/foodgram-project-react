@@ -1,15 +1,14 @@
 from django.db.models import IntegerField, Value
-from django_filters.rest_framework import (AllValuesMultipleFilter,
-                                           BooleanFilter, CharFilter,
-                                           FilterSet)
+from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe
 
 
 class RecipeFilter(FilterSet):
-    tags = AllValuesMultipleFilter(field_name='tags__slug')
-    is_favorited = BooleanFilter(method='get_is_favorited')
-    is_in_shopping_cart = BooleanFilter(method='get_is_in_shopping_cart')
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    is_favorited = filters.BooleanFilter(method='get_is_favorited')
+    is_in_shopping_cart = filters.BooleanFilter(
+        method='get_is_in_shopping_cart')
 
     class Meta:
         model = Recipe
@@ -31,7 +30,7 @@ class RecipeFilter(FilterSet):
 
 
 class IngredientFilter(FilterSet):
-    name = CharFilter(method='search_by_name')
+    name = filters.CharFilter(method='search_by_name')
 
     class Meta:
         model = Ingredient
