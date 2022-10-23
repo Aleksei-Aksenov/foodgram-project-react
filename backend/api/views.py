@@ -27,7 +27,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_class = IngredientFilter
+    filterset_class = IngredientFilter
     search_fields = ("^name",)
     pagination_class = None
 
@@ -99,7 +99,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели рецепта."""
     queryset = Recipe.objects.all().order_by("-id")
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_class = RecipeFilter
+    filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_serializer_class(self):
