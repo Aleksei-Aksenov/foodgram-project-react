@@ -9,7 +9,7 @@ from django_filters.rest_framework import (
 from recipes.models import Ingredient, Recipe, ShoppingList
 
 
-class IngredientSearchFilter(FilterSet):
+class IngredientFilter(FilterSet):
     name = CharFilter(method='search_by_name')
 
     class Meta:
