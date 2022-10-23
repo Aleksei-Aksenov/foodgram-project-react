@@ -243,7 +243,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             print(ingredient)
             print('*************')
             current_ingredient = get_object_or_404(
-                Ingredient
+                Ingredient[:1]
             )
             ing, _ = IngredientInRecipe.objects.get_or_create(
                 ingredient=current_ingredient,
