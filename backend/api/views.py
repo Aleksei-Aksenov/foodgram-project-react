@@ -14,7 +14,7 @@ from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingList, Tag)
 from users.models import Follow, User
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsAdminAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
                           RecipesWriteSerializer, FavoriteSerializer,
@@ -100,7 +100,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     serializer_class = RecipesReadSerializer
-    permission_classes = (IsAdminAuthorOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
