@@ -9,7 +9,6 @@ from recipes.models import (
 )
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
 from users.models import Follow, User
 
 
@@ -154,8 +153,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return Favourite.objects.filter(
-            recipe=obj, user=request.user).exists()
+        return Favourite.objects.filter(recipe=obj, user=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет находится ли рецепт в продуктовой корзине."""
@@ -241,10 +239,8 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
     def create_amount_ingredients(self, ingredients):
         amount_ingredients = []
         for ingr in ingredients:
-            ingredient_name = get_object_or_404(
-                IngredientInRecipe, id=ingr.get("id"))
-            ingr, _ = Ingredient.objects.get_or_create(
-                ingredient_name=ingredient_name,
+            ingr, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient_id=ingr.get("id"),
                 amount=ingr.get("amount"),
             )
             amount_ingredients.append(ingr)
