@@ -4,11 +4,21 @@
 
 На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд
 
-### Стек технологий:
+#### Приложение работает на следующих технологиях:
 
-    Python 3.7.0
-    Django 3.2.16
-    DRF 3.14.0
+<img src="https://img.shields.io/badge/django-blue?style=for-the-badge&logo=django&logoColor=white"/> <img src="https://img.shields.io/badge/rest-framework-blue?style=for-the-badge&logo=django&logoColor=white"/> <img src="https://img.shields.io/badge/postgres-blue?style=for-the-badge&logo=PostgreSQL&logoColor=white"/> <img src="https://img.shields.io/badge/react-blue?style=for-the-badge&logo=React&logoColor=white"/>
+
+Проект размещен по адресу:
+    [62.84.113.243](http://62.84.113.243/)
+    
+Аккаунт для проверки админ-панели:
+
+        Логин: .ru
+        Пароль: admin
+
+#### :pencil2: Авторы проекта:
+- backend (Алексей Аксёнов)
+- frontend (Yandex.Practicum)
 
 ## Запуск проекта в dev-режиме:
 

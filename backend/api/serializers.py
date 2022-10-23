@@ -239,7 +239,9 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
+            print('***************')
             print(ingredient)
+            print('*************')
             current_ingredient = get_object_or_404(
                 Ingredient.objects.filter(id=ingredient['id'])[:1]
             )
