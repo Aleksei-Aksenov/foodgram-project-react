@@ -1,65 +1,44 @@
-from django.db.models import IntegerField, Value
-from django_filters.rest_framework import (
-    AllValuesMultipleFilter,
-    BooleanFilter,
-    CharFilter,
-    FilterSet
-)
+from django_filters import rest_framework as filters
 
-from recipes.models import Ingredient, Recipe, ShoppingList
+from recipes.models import Ingredient, Recipe, Tag
 
 
-class IngredientFilter(FilterSet):
-    name = CharFilter(method='search_by_name')
+class RecipeFilter(filters.FilterSet):
+    """Фильтр рецептов"""
+    tags = filters.filters.ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        field_name='tags__slug',
+        to_field_name='slug',
+    )
+    author = filters.CharFilter(lookup_expr='exact')
+    is_in_shopping_cart = filters.BooleanFilter(
+        field_name='is_in_shopping_cart', method='filter'
+    )
+    is_favorited = filters.BooleanFilter(
+        field_name='is_favorited', method='filter'
+    )
+
+    def filter(self, queryset, name, value):
+        """Метод фильтрации рецептов"""
+        if name == 'is_in_shopping_cart' and value:
+            queryset = queryset.filter(
+                shopping_list_user__user=self.request.user
+            )
+        if name == 'is_favorited' and value:
+            queryset = queryset.filter(
+                favorite_user__user=self.request.user
+            )
+        return queryset
+
+    class Meta:
+        model = Recipe
+        fields = ('author', 'tags', 'is_in_shopping_cart', 'is_favorited',)
+
+
+class IngredientFilter(filters.FilterSet):
+    """Фильтр ингредиентов"""
+    name = filters.CharFilter(field_name='name', lookup_expr='istartswith')
 
     class Meta:
         model = Ingredient
         fields = ('name',)
-
-    def search_by_name(self, queryset, name, value):
-        if not value:
-            return queryset
-        start_with_queryset = (
-            queryset.filter(name__istartswith=value).annotate(
-                order=Value(0, IntegerField())
-            )
-        )
-        contain_queryset = (
-            queryset.filter(name__icontains=value).exclude(
-                pk__in=(ingredient.pk for ingredient in start_with_queryset)
-            ).annotate(
-                order=Value(1, IntegerField())
-            )
-        )
-        return start_with_queryset.union(contain_queryset).order_by('order')
-
-
-class RecipeFilter(FilterSet):
-    is_favorited = BooleanFilter(method='get_is_favorited')
-    is_in_shopping_cart = BooleanFilter(method='get_is_in_shopping_cart')
-    tags = AllValuesMultipleFilter(field_name='tags__slug')
-
-    class Meta:
-        model = Recipe
-        fields = ('author',)
-
-    def get_is_favorited(self, queryset, name, value):
-        if not value:
-            return queryset
-        favourites = self.request.user.favorite_user.all()
-        return queryset.filter(
-            pk__in=(favourite.recipe.pk for favourite in favourites)
-        )
-
-    def get_is_in_shopping_cart(self, queryset, name, value):
-        if not value:
-            return queryset
-        try:
-            recipes = (
-                self.request.user.shopping_list_user.recipe.all()
-            )
-        except ShoppingList.DoesNotExist:
-            return queryset
-        return queryset.filter(
-            pk__in=(recipe.pk for recipe in recipes)
-        )
