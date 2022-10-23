@@ -257,7 +257,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class FavouriteSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов"""
     id = serializers.CharField(
         read_only=True, source='recipe.id',

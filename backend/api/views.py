@@ -26,7 +26,7 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
                           RecipesWriteSerializer, ShortRecipeSerializer,
-                          FavoriteSerializer, TagSerializer)
+                          TagSerializer)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
