@@ -1,15 +1,11 @@
 from django_filters import rest_framework as filters
 
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Ingredient, Recipe
 
 
 class RecipeFilter(filters.FilterSet):
     """Фильтр рецептов"""
-    tags = filters.AllValuesMultipleFilter(
-        queryset=Tag.objects.all(),
-        field_name='tags__slug',
-        to_field_name='slug',
-    )
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
     author = filters.CharFilter(lookup_expr='exact')
     is_in_shopping_cart = filters.BooleanFilter(
         field_name='is_in_shopping_cart', method='filter'
