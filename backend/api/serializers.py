@@ -159,7 +159,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
         try:
             return (
                 user.is_authenticated
-                and user.shopping_list_user.recipes.filter(
+                and user.shopping_list_user.recipe.filter(
                     pk__in=(obj.pk,)).exists()
             )
         except ShoppingList.DoesNotExist:

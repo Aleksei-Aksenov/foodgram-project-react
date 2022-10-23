@@ -9,7 +9,7 @@ from django_filters.rest_framework import (
 from recipes.models import Ingredient, Recipe, ShoppingList
 
 
-class IngredientFilter(FilterSet):
+class IngredientSearchFilter(FilterSet):
     name = CharFilter(method='search_by_name')
 
     class Meta:
@@ -56,7 +56,7 @@ class RecipeFilter(FilterSet):
             return queryset
         try:
             recipes = (
-                self.request.user.shopping_list_user.recipes.all()
+                self.request.user.shopping_list_user.recipe.all()
             )
         except ShoppingList.DoesNotExist:
             return queryset

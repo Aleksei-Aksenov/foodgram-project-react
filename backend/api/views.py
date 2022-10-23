@@ -193,7 +193,7 @@ class ShoppingCartViewSet(GenericViewSet):
 
     def generate_shopping_cart_data(self, request):
         recipes = (
-            request.user.shopping_list_user.recipes.prefetch_related(
+            request.user.shopping_list_user.recipe.prefetch_related(
                 'ingredients')
         )
         return (
