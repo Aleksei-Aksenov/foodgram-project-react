@@ -110,16 +110,34 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор ингридиентов в рецепте"""
 
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), source="ingredient"
-    )
+    id = serializers.IntegerField()
+    amount = serializers.IntegerField(required=True)
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
 
     class Meta:
         model = IngredientInRecipe
         fields = (
             "id",
+            'name',
+            'measurement_unit',
             "amount",
         )
+
+    def validate_amount(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Check that the ingredients amount is more than one'
+            )
+        return value
+
+    def get_measurement_unit(self, ingredient):
+        measurement_unit = ingredient.ingredient.measurement_unit
+        return measurement_unit
+
+    def get_name(self, ingredient):
+        name = ingredient.ingredient.name
+        return name
 
 
 class RecipesReadSerializer(serializers.ModelSerializer):
@@ -213,15 +231,15 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             int(cooking_time)
             if int(cooking_time) < 1:
                 raise serializers.ValidationError(
-                    "Время готовки не может быть" " меньше 1!"
+                    "Время готовки не может быть меньше 1!"
                 )
             if int(cooking_time) > 720:
                 raise serializers.ValidationError(
-                    "Время готовки не может быть" " больше 720!"
+                    "Время готовки не может быть больше 720!"
                 )
         except Exception:
             raise ValidationError(
-                {"cooking_time": "Время" " должно быть больше 0"})
+                {"cooking_time": "Время должно быть больше 0!"})
         return data
 
     def validate_tags(self, data):
@@ -237,13 +255,10 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             raise ValidationError("Теги должны быть уникальными")
         return data
 
-    def create_ingredients(self, ingredients, recipe):
+    def create_amount_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
-            print('***************')
-            print(ingredient)
-            print('*************')
             current_ingredient = get_object_or_404(
-                Ingredient.objects.filter(id=ingredient.id)
+                Ingredient.objects.filter(id=ingredient['id'])[:1]
             )
             ing, _ = IngredientInRecipe.objects.get_or_create(
                 ingredient=current_ingredient,
@@ -257,7 +272,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
         for tag in tags:
             recipe.tags.set(tags)
-        self.create_ingredients(ingredients, recipe)
+        self.create_amount_ingredients(ingredients, recipe)
         return recipe
 
     def update(self, recipe, validated_data):
