@@ -1,4 +1,4 @@
-from django.db.models import F, Sum
+from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -171,11 +171,12 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 recipes__shopping_list_recipe__user=user
             )
             .values(
-                name=F('ingredient__name'),
-                unit=F('ingredient__measurement_unit')
+                'ingredient__name',
+                'ingredient__measurement_unit'
             )
-            .annotate(amount=Sum('amount'))
+            .annotate(ingredient_total=Sum('amount'))
         )
+        ingredients_list = ingredients_list.order_by('ingredient__name')
         shopping_list = 'Список покупок: \n'
         for ingredient in ingredients_list:
             shopping_list += (
