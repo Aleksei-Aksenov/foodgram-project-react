@@ -10,7 +10,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated)
 from rest_framework.response import Response
 
-
 from recipes.models import (Favourite, Ingredient, Recipe,
                             IngredientInRecipe, ShoppingList, Tag)
 from users.models import Follow, User
@@ -29,14 +28,12 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = IngredientFilter
     search_fields = ("^name",)
-    pagination_class = None
 
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    pagination_class = None
 
 
 class CustomUserViewSet(UserViewSet):
@@ -111,10 +108,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def add_recipe(self, model, user, pk):
-        """Метод для добавления"""
+        """Метод для добавления рецепта."""
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response({
-                'errors': 'Рецепт уже добавлен в список'
+                'errors': 'Рецепт уже добавлен в список!'
             }, status=status.HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
@@ -122,7 +119,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe(self, model, user, pk):
-        """Метод для удаления"""
+        """Метод для удаления рецепта."""
         obj = model.objects.filter(user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
@@ -138,7 +135,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def favorite(self, request, pk=None):
-        """Метод для добавления/удаления из избранного"""
+        """Метод для добавления/удаления из избранного."""
         if request.method == 'POST':
             return self.add_recipe(Favourite, request.user, pk)
         else:
@@ -151,7 +148,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk=None):
-        """Метод для добавления/удаления из продуктовой корзины"""
+        """Метод для добавления/удаления из продуктовой корзины."""
         if request.method == 'POST':
             return self.add_recipe(ShoppingList, request.user, pk)
         else:
@@ -165,7 +162,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         """Метод для получения и скачивания
-        списка продуктов из продуктовой корзины"""
+        списка продуктов из продуктовой корзины."""
         user = request.user
         ingredients_list = (
             IngredientInRecipe.objects.filter(

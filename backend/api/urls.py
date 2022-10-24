@@ -3,8 +3,8 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (IngredientsViewSet, RecipesViewSet, TagsViewSet,
-                    CustomUserViewSet)
+from .views import (CustomUserViewSet, IngredientsViewSet, RecipesViewSet,
+                    TagsViewSet)
 
 app_name = "api"
 

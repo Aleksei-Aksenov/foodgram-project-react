@@ -1,13 +1,7 @@
-from drf_extra_fields.fields import Base64ImageField
 from django.shortcuts import get_object_or_404
-from recipes.models import (
-    Favourite,
-    Ingredient,
-    IngredientInRecipe,
-    Recipe,
-    ShoppingList,
-    Tag,
-)
+from drf_extra_fields.fields import Base64ImageField
+from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingList, Tag)
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from users.models import Follow, User
@@ -15,7 +9,6 @@ from users.models import Follow, User
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор модели тегов."""
-
     class Meta:
         model = Tag
         fields = (
@@ -28,7 +21,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ингридиентов."""
-
     class Meta:
         model = Ingredient
         fields = ("id", "name", "measurement_unit")
@@ -36,7 +28,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(serializers.ModelSerializer):
     """Сериализатор модели пользователя."""
-
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -60,6 +51,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    """Сериализатор подписок."""
     email = serializers.ReadOnlyField(source="author.email")
     id = serializers.ReadOnlyField(source="author.id")
     username = serializers.ReadOnlyField(source="author.username")
@@ -95,6 +87,7 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор списка рецептов."""
     image = Base64ImageField()
 
     class Meta:
@@ -109,7 +102,6 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор ингридиентов в рецепте"""
-
     id = serializers.IntegerField()
     amount = serializers.IntegerField(required=True)
     name = serializers.SerializerMethodField()
@@ -127,7 +119,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         if value < 1:
             raise serializers.ValidationError(
-                'Check that the ingredients amount is more than one'
+                'Проверьте что количество ингредиентов больше 1!'
             )
         return value
 
@@ -141,8 +133,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipesReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для рецептов."""
-
+    """Сериализатор для рецептов (просмотр)."""
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(many=True)
@@ -184,8 +175,7 @@ class RecipesReadSerializer(serializers.ModelSerializer):
 
 
 class RecipesWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для рецептов."""
-
+    """Сериализатор для рецептов (создание)."""
     author = CustomUserSerializer(read_only=True, required=False)
     ingredients = IngredientInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
@@ -226,16 +216,17 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return data
 
     def validate_cooking_time(self, data):
+        """Валидатор времени приготовления."""
         cooking_time = self.initial_data.get("cooking_time")
         try:
             int(cooking_time)
             if int(cooking_time) < 1:
                 raise serializers.ValidationError(
-                    "Время готовки не может быть меньше 1!"
+                    "Время приготовления не может быть меньше 1!"
                 )
             if int(cooking_time) > 720:
                 raise serializers.ValidationError(
-                    "Время готовки не может быть больше 720!"
+                    "Время приготовления не может быть больше 720!"
                 )
         except Exception:
             raise ValidationError(
@@ -243,6 +234,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return data
 
     def validate_tags(self, data):
+        """Валидатор тегов."""
         tags = self.initial_data.get("tags")
         if not tags:
             raise ValidationError("Рецепт не может быть без тегов")
@@ -256,6 +248,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return data
 
     def create_amount_ingredients(self, ingredients, recipe):
+        """Создание ингредиентов в рецепте."""
         for ingredient in ingredients:
             current_ingredient = get_object_or_404(
                 Ingredient.objects.filter(id=ingredient['id'])[:1]
@@ -267,6 +260,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             recipe.ingredients.add(ing.id)
 
     def create(self, validated_data):
+        """Создание рецепта."""
         tags = validated_data.pop("tags")
         ingredients = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
@@ -276,6 +270,7 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, recipe, validated_data):
+        """Обновление рецепта."""
         if "ingredients" in validated_data:
             ingredients = validated_data.pop("ingredients")
             recipe.ingredients.clear()
@@ -292,7 +287,6 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
 
 class FavouriteSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов"""
-
     id = serializers.CharField(
         read_only=True,
         source="recipe.id",
@@ -336,7 +330,6 @@ class FavouriteSerializer(serializers.ModelSerializer):
 
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор продуктовой корзины."""
-
     id = serializers.CharField(
         read_only=True,
         source="recipe.id",

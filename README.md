@@ -13,8 +13,10 @@
     
 Аккаунт для проверки админ-панели:
 
-        Логин: 
-        Пароль: admin
+        Адрес: http://62.84.113.243/admin/
+        Эл. почта: admin@gmail.com
+        Логин: admin
+        Пароль: 123Admin
 
 #### :pencil2: Авторы проекта:
 - backend (Алексей Аксёнов)
@@ -29,11 +31,11 @@
 
 2. Cоздать и активировать виртуальное окружение:
 
-        - # Если у вас linux/MacOS:
+        # - Если у вас linux/MacOS:
         python3 -m venv venv
         source venv/bin/activate
 
-        - # Если у вас Windows:
+        # - Если у вас Windows:
         python -m venv venv
         source venv/Scripts/activate
         
