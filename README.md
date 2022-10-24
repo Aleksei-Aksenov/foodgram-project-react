@@ -1,3 +1,5 @@
+[![foodgram_workflow](https://github.com/Aleksei-Aksenov/foodgram-project-react/workflows/main/badge.svg)](https://github.com/Aleksei-Aksenov/foodgram-project-react/actions/workflows/main.yml)
+
 # :bread: FoodGram продуктовый помощник
 
 ## Описание:

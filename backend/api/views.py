@@ -28,12 +28,14 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = IngredientFilter
     search_fields = ("^name",)
+    pagination_class = None
 
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class CustomUserViewSet(UserViewSet):
