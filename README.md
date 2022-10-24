@@ -33,11 +33,11 @@
 
 2. Cоздать и активировать виртуальное окружение:
 
-        # - Если у вас linux/MacOS:
+         - Если у вас linux/MacOS:
         python3 -m venv venv
         source venv/bin/activate
 
-        # - Если у вас Windows:
+         - Если у вас Windows:
         python -m venv venv
         source venv/Scripts/activate
         
@@ -100,7 +100,7 @@
 2. После успешной сборки, выполнить миграции в контейнере backend.
 
         sudo docker-compose exec backend python manage.py makemigrations
-        sudo docker-compose exec backend python manage.py migrate --noinput
+        sudo docker-compose exec backend python manage.py migrate
         
 3. Создать суперпользователя.
 
