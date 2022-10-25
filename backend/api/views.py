@@ -100,6 +100,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
