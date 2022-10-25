@@ -14,6 +14,7 @@ from recipes.models import (Favourite, Ingredient, Recipe,
                             IngredientInRecipe, ShoppingList, Tag)
 from users.models import Follow, User
 from .filters import IngredientFilter, RecipeFilter
+from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FollowSerializer,
                           IngredientSerializer, RecipesReadSerializer,
@@ -95,12 +96,12 @@ class CustomUserViewSet(UserViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели рецепта"""
+    """Вьюсет для модели рецепта."""
     queryset = Recipe.objects.all().order_by("-id")
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = None
+    pagination_class = LimitPageNumberPagination
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
